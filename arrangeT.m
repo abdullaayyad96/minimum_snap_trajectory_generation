@@ -1,3 +1,4 @@
+%Generate timesteps for each waypoint based on the distance
 function ts = arrangeT(waypts,T)
     x = waypts(:,2:end) - waypts(:,1:end-1);
     dist = sum(x.^2,1).^0.5;

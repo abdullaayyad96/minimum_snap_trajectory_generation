@@ -1,3 +1,4 @@
+%The value of a polynomial at times ts
 function vals = polys_vals(polys,ts,tt,r)
 idx = 1;
 N = length(tt);

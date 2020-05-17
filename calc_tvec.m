@@ -1,3 +1,4 @@
+%Calculate times factor for each of the polynomial coeeficient 
 % r=0:pos  1:vel  2:acc 3:jerk
 function tvec = calc_tvec(t,n_order,r)
     tvec = zeros(1,n_order+1);

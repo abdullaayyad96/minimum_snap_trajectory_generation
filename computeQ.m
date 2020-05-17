@@ -2,6 +2,8 @@
 % r:derivertive order, 1:minimum vel 2:minimum acc 3:minimum jerk 4:minimum snap
 % t1:start timestamp for polynormial
 % t2:end timestap for polynormial
+% output: Hessian matrix of the cost function for a specific segment
+% relative to polynomial parameters
 function Q = computeQ(n,r,t1,t2)
 T = zeros((n-r)*2+1,1);
 for i = 1:(n-r)*2+1

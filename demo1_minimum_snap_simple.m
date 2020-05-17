@@ -2,20 +2,23 @@ function demo1_minimum_snap_simple()
     clear,clc;
 
     %% condition
+%% condition
     waypts = [0,0;
-              1,2;
-              2,-1;
-              4,8;
-              5,2]';
+          1,2;
+          2,0;
+          4,5;
+          5,2]';
+      
     v0 = [0,0];
     a0 = [0,0];
     v1 = [0,0];
     a1 = [0,0];
-    T = 5;
-    ts = arrangeT(waypts,T);
-    n_order = 5;
+    T = 5; %Total time for the trajectory
+    ts = arrangeT(waypts,T); %Timestamp for each segment
+    n_order = 5; %Order of polynomial
     
     %% trajectory plan
+    %independantly solve for x and y
     polys_x = minimum_snap_single_axis_simple(waypts(1,:),ts,n_order,v0(1),a0(1),v1(1),a1(1));
     polys_y = minimum_snap_single_axis_simple(waypts(2,:),ts,n_order,v0(2),a0(2),v1(2),a1(2));
     
@@ -58,17 +61,26 @@ pe = waypts(end);
 n_poly = length(waypts)-1;
 n_coef = n_order+1;
 
-% compute Q
+% compute Q: Q incorporates the hessian matrix for all the segments in a
+% block diagonal manner. It serves as the cost function for the QP problem
 Q_all = [];
 for i=1:n_poly
-    Q_all = blkdiag(Q_all,computeQ(n_order,3,ts(i),ts(i+1)));
+    Q_all = blkdiag(Q_all,computeQ_ayyad(n_order,4,ts(i),ts(i+1)));
+    Q_old = computeQ(n_order,3,ts(i),ts(i+1));
+    Q_ayyad = computeQ_ayyad(n_order,3,ts(i),ts(i+1));
 end
 b_all = zeros(size(Q_all,1),1);
 
-Aeq = zeros(4*n_poly+2,n_coef*n_poly);
-beq = zeros(4*n_poly+2,1);
+%constraints on states and their derivates
+%For each polynomial trajectory, constraints on [1-position at goal
+%waypoint 2-position continuity, 3-velocity continuity, 4-acceleration
+%continuity].
+%Additionally, 3 constraints on initial states and 3 on terminal states
+%acceleration
+Aeq = zeros(4*(n_poly-1)+6,n_coef*n_poly);
+beq = zeros(4*(n_poly-1)+6,1);
 
-% start/terminal pva constraints  (6 equations)
+% start/terminal position-velocity-acceleration constraints  (6 equations)
 Aeq(1:3,1:n_coef) = [calc_tvec(ts(1),n_order,0);
                      calc_tvec(ts(1),n_order,1);
                      calc_tvec(ts(1),n_order,2)];
@@ -78,7 +90,7 @@ Aeq(4:6,n_coef*(n_poly-1)+1:n_coef*n_poly) = ...
                      calc_tvec(ts(end),n_order,2)];
 beq(1:6,1) = [p0,v0,a0,pe,ve,ae]';
 
-% mid p constraints    (n_ploy-1 equations)
+% position constraints on middle waypoints   (n_ploy-1 equations)
 neq = 6;
 for i=1:n_poly-1
     neq=neq+1;

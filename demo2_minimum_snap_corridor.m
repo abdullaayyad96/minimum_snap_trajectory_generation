@@ -77,7 +77,7 @@ n_coef = n_order+1;
 % compute Q
 Q_all = [];
 for i=1:n_poly
-    Q_all = blkdiag(Q_all,computeQ(n_order,3,ts(i),ts(i+1)));
+    Q_all = blkdiag(Q_all,computeQ_ayyad(n_order,4,ts(i),ts(i+1)));
 end
 b_all = zeros(size(Q_all,1),1);
 
