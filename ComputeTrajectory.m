@@ -1,23 +1,10 @@
+function [total_cost, polys_x, polys_y, polys_z] = ComputeTrajectory(ts, waypts, n_order)
 
-clear,clc;
-
-%% condition
-%% condition
-waypts = [0,0,1;
-      1,1, 1.3;
-      -1,1, 0.7;
-      1,-1, 1.3;
-      -1,-1, 0.7;
-      0, 0, 1]';
-
+%% conditions
 v0 = [0,0];
 a0 = [0,0];
 v1 = [0,0];
 a1 = [0,0];
-T = 10; %Total time for the trajectory
-ts = arrangeT(waypts,T); %Timestamp for each segment
-
-n_order = 6; %Order of polynomial
 
 %% trajectory plan
 %independantly solve for x and y
@@ -26,36 +13,8 @@ n_order = 6; %Order of polynomial
 [polys_z, cost_z] = minimum_snap_single_axis_simple(waypts(3,:),ts,n_order,v0(2),a0(2),v1(2),a1(2));
 
 total_cost = cost_x^2 + cost_y^2 + cost_z^2;
-%% result show
-figure(1)
-plot(waypts(1,:),waypts(2,:),'*r');hold on;
-plot(waypts(1,:),waypts(2,:),'b--');
-title('minimum snap trajectory');
-color = ['grc'];
-for i=1:size(polys_x,2)
-    tt = ts(i):0.01:ts(i+1);
-    xx = polys_vals(polys_x,ts,tt,0);
-    yy = polys_vals(polys_y,ts,tt,0);
-    plot(xx,yy,color(mod(i,3)+1));
+
 end
-
-figure(2)
-vxx = polys_vals(polys_x,ts,tt,1);
-axx = polys_vals(polys_x,ts,tt,2);
-jxx = polys_vals(polys_x,ts,tt,3);
-vyy = polys_vals(polys_y,ts,tt,1);
-ayy = polys_vals(polys_y,ts,tt,2);
-jyy = polys_vals(polys_y,ts,tt,3);
-
-subplot(421),plot(tt,xx);title('x position');
-subplot(422),plot(tt,yy);title('y position');
-subplot(423),plot(tt,vxx);title('x velocity');
-subplot(424),plot(tt,vyy);title('y velocity');
-subplot(425),plot(tt,axx);title('x acceleration');
-subplot(426),plot(tt,ayy);title('y acceleration');
-subplot(427),plot(tt,jxx);title('x jerk');
-subplot(428),plot(tt,jyy);title('y jerk');
-
 
 function [polys, cost] = minimum_snap_single_axis_simple(waypts,ts,n_order,v0,a0,ve,ae)
 p0 = waypts(1);
@@ -122,4 +81,3 @@ bieq = [];
 polys = reshape(p,n_coef,n_poly);
 
 end
-
