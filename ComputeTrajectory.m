@@ -76,7 +76,8 @@ end
 Aieq = [];
 bieq = [];
 
-[p, cost] = quadprog(Q_all,b_all,Aieq,bieq,Aeq,beq);
+options = optimoptions('quadprog','Display','final', 'ConstraintTolerance', 1e-9, 'MaxIterations', 300);
+[p, cost] = quadprog(Q_all,b_all,Aieq,bieq,Aeq,beq, [], [], [], options);
 
 polys = reshape(p,n_coef,n_poly);
 
