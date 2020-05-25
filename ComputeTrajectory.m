@@ -28,19 +28,17 @@ n_coef = n_order+1;
 Q_all = [];
 for i=1:n_poly
     Q_all = blkdiag(Q_all,computeQ_ayyad(n_order,4,ts(i),ts(i+1)));
-    Q_old = computeQ(n_order,3,ts(i),ts(i+1));
-    Q_ayyad = computeQ_ayyad(n_order,3,ts(i),ts(i+1));
 end
 b_all = zeros(size(Q_all,1),1);
 
 %constraints on states and their derivates
 %For each polynomial trajectory, constraints on [1-position at goal
-%waypoint 2-position continuity, 3-velocity continuity, 4-acceleration
-%continuity].
+%waypoint 2-position continuity, 3-velocity continuity, 4-acceleration,
+%5-jerk continuity].
 %Additionally, 3 constraints on initial states and 3 on terminal states
 %acceleration
-Aeq = zeros(4*(n_poly-1)+6,n_coef*n_poly);
-beq = zeros(4*(n_poly-1)+6,1);
+Aeq = zeros(5*(n_poly-1)+6,n_coef*n_poly);
+beq = zeros(5*(n_poly-1)+6,1);
 
 % start/terminal position-velocity-acceleration constraints  (6 equations)
 Aeq(1:3,1:n_coef) = [calc_tvec(ts(1),n_order,0);
@@ -64,21 +62,26 @@ end
 for i=1:n_poly-1
     tvec_p = calc_tvec(ts(i+1),n_order,0);
     tvec_v = calc_tvec(ts(i+1),n_order,1);
-    tvec_a = calc_tvec(ts(i+1),n_order,2);
+    tvec_a = calc_tvec(ts(i+1),n_order,2);    
+    tvec_j = calc_tvec(ts(i+1),n_order,3);
     neq=neq+1;
     Aeq(neq,n_coef*(i-1)+1:n_coef*(i+1))=[tvec_p,-tvec_p];
     neq=neq+1;
     Aeq(neq,n_coef*(i-1)+1:n_coef*(i+1))=[tvec_v,-tvec_v];
     neq=neq+1;
     Aeq(neq,n_coef*(i-1)+1:n_coef*(i+1))=[tvec_a,-tvec_a];
+    neq=neq+1;
+    Aeq(neq,n_coef*(i-1)+1:n_coef*(i+1))=[tvec_j,-tvec_j];
 end
 
 Aieq = [];
 bieq = [];
 
-options = optimoptions('quadprog','Display','final', 'ConstraintTolerance', 1e-9, 'MaxIterations', 300);
+options = optimoptions('quadprog','Display','final', 'ConstraintTolerance', 1e-12, 'MaxIterations', 1000, 'Algorithm', 'trust-region-reflective');
 [p, cost] = quadprog(Q_all,b_all,Aieq,bieq,Aeq,beq, [], [], [], options);
 
+Aeq * p - beq
+norm(Aeq * p - beq)
 polys = reshape(p,n_coef,n_poly);
 
 end

@@ -1,4 +1,4 @@
-%The value of a polynomial at times ts
+%The value of a polynomial at times tt
 function vals = polys_vals(polys,ts,tt,r)
 idx = 1;
 N = length(tt);
@@ -8,7 +8,7 @@ for i = 1:N
     if t<ts(idx)
         vals(i) = 0;
     else
-        while idx<length(ts) && t>ts(idx+1)+0.0001
+        while idx<length(ts) && t>ts(idx+1)
             idx = idx+1;
         end
         vals(i) = poly_val(polys(:,idx),t,r);
