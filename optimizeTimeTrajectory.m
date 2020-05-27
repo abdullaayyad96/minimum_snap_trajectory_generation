@@ -2,14 +2,14 @@
 % conditions
 waypts = [0,0,1;
       0.75,0.75, 1;
-      -0.75,0.75, 1;
-      0.75,-0.75, 1;
-      -0.75,-0.75, 1;
+      -0.75, 0.75, 1;
+      0.75, -0.75, 1;
+      -0.75, -0.75, 1;
       0, 0, 1]';
 
 n_order = 6; %Order of polynomial
 
-T = 5; %Total time for the trajectory
+T = 10; %Total time for the trajectory
 ts_initial = arrangeT(waypts,T)'; %Timestamp for each segment
 
 %%
@@ -32,6 +32,7 @@ beq = [0; T];
 %solve problem
 options = optimoptions('fmincon','Display','final', 'OptimalityTolerance', 1e-9, 'MaxIterations', 10);
 [optimal_ts, optimal_cost] = fmincon(@(sol)ComputeTrajectory(sol, waypts, n_order), ts_initial, A, b, Aeq, beq, [], [], [], options); 
+
 
 cost_1 = ComputeTrajectory(ts_initial, waypts, n_order);
 cost_2 = ComputeTrajectory(optimal_ts, waypts, n_order);
