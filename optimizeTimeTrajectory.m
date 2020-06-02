@@ -1,15 +1,23 @@
 %%
 % conditions
-waypts = [0,0,1;
-      0.75,0.75, 1;
-      -0.75, 0.75, 1;
-      0.75, -0.75, 1;
-      -0.75, -0.75, 1;
-      0, 0, 1]';
+waypts = [-1.5,0,2;
+      -0.25,-1, 1.5;
+      0.25, -1, 1.5;
+      1.5, -0.25, 2;
+      1.5, 0.25, 2;
+      0.25, 1, 2.5;
+      -0.25, 1, 2.5;
+      -1.5,0, 2]';
 
-n_order = 6; %Order of polynomial
+n_order = [6;
+           6;
+           6;
+           1;
+           6;
+           6;
+           6]; %Order of polynomial for each trajectory segment
 
-T = 10; %Total time for the trajectory
+T = 8; %Total time for the trajectory
 ts_initial = arrangeT(waypts,T)'; %Timestamp for each segment
 
 %%
@@ -51,22 +59,22 @@ title('minimum snap trajectory');
 color = ['grc'];
 for i=1:size(polys_x,2)
     tt = ts(i):0.01:ts(i+1);
-    xx = polys_vals(polys_x,ts,tt,0);
-    yy = polys_vals(polys_y,ts,tt,0);
+    xx = polys_vals_cell(polys_x,ts,tt,0);
+    yy = polys_vals_cell(polys_y,ts,tt,0);
     plot(xx,yy,color(mod(i,3)+1));
 end
 
 
 figure(2)
 tt = ts(1):0.01:ts(end);
-xx = polys_vals(polys_x,ts,tt,0);
-vxx = polys_vals(polys_x,ts,tt,1);
-axx = polys_vals(polys_x,ts,tt,2);
-jxx = polys_vals(polys_x,ts,tt,3);
-yy = polys_vals(polys_y,ts,tt,0);
-vyy = polys_vals(polys_y,ts,tt,1);
-ayy = polys_vals(polys_y,ts,tt,2);
-jyy = polys_vals(polys_y,ts,tt,3);
+xx = polys_vals_cell(polys_x,ts,tt,0);
+vxx = polys_vals_cell(polys_x,ts,tt,1);
+axx = polys_vals_cell(polys_x,ts,tt,2);
+jxx = polys_vals_cell(polys_x,ts,tt,3);
+yy = polys_vals_cell(polys_y,ts,tt,0);
+vyy = polys_vals_cell(polys_y,ts,tt,1);
+ayy = polys_vals_cell(polys_y,ts,tt,2);
+jyy = polys_vals_cell(polys_y,ts,tt,3);
 
 subplot(421),plot(tt,xx);title('x position');
 subplot(422),plot(tt,yy);title('y position');
