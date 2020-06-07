@@ -12,7 +12,7 @@ waypts = [-1.5,0,2;
 n_order = [6;
            6;
            6;
-           1;
+           6;
            6;
            6;
            6]; %Order of polynomial for each trajectory segment
@@ -58,6 +58,7 @@ plot(waypts(1,:),waypts(2,:),'b--');
 title('minimum snap trajectory');
 color = ['grc'];
 for i=1:size(polys_x,2)
+    
     tt = ts(i):0.01:ts(i+1);
     xx = polys_vals_cell(polys_x,ts,tt,0);
     yy = polys_vals_cell(polys_y,ts,tt,0);
