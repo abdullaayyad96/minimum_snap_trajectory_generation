@@ -8,12 +8,8 @@ This README provides a brief overview of our trajectory generation utilities wit
 ## How to run
 There are 4 demo codes in 2D space, you can directly run these and see results.
 
- - demo1: minimum snap trajectory planning with waypoints **strong constrants**(equality constraints).
- - demo2: minimum snap trajectory planning with **corridor constraints**(iequality constraints).
- - demo3: minimum snap trajectory planning with waypoints strong constrants by **close form** solution.
- - demo4: minimum snap trajectory planning with **guiding path**
+- Try trajectoryGenerationDemo.m for a regular waypoint based path.
+- try trajectoryGenerationDemo_8shape.m for an 8shape path
 
 ## Licence
 The source code is released under GPLv3 license.
-
-Any problem, please contact maoshuyuan123@gmail.com
