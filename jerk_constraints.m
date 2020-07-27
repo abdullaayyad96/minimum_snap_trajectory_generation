@@ -1,4 +1,4 @@
-function [c, ceq] = attitude_contraint(p, t_forced_roll, forced_roll, ts, n_order)
+function [c, ceq] = jerk_constraints(p, time_steps, ts, n_order, max_jerk)
 %ATTITUDE_CONTRAINT Summary of this function goes here
 %   - p: polynomial parameters for all trajectory segments of x y and z
 %   - time_step: time_step to impose attitude contraint
@@ -8,15 +8,6 @@ function [c, ceq] = attitude_contraint(p, t_forced_roll, forced_roll, ts, n_orde
 
 n_poly = length(ts)-1;
 n_coef = cumsum(n_order+1);
-
-%determine appropriate polynomial semgent
-trajectory_segment = 0;
-for i=1:length(ts)-1
-    if (t_forced_roll >= ts(i)) && (t_forced_roll <= ts(i+1))
-        trajectory_segment = i;
-        break
-    end
-end
 
 %divide polynomial parameters to x y and z
 polys = {};
@@ -35,16 +26,12 @@ polys_x = {polys{1, :}};
 polys_y = {polys{2, :}};
 polys_z = {polys{3, :}};
 
-%compute accelerations at desired time
-g = 9.81;
-ax = polys_vals_cell(polys_x,ts,t_forced_roll,2);
-ay = polys_vals_cell(polys_y,ts,t_forced_roll,2);
-az = polys_vals_cell(polys_z,ts,t_forced_roll,2);
+%compute z jerk at desired time
+jz = polys_vals_cell(polys_z,ts,time_steps,3);
 
-roll = -atan2(ay, az + 9.81);
-
-c = [];
-ceq = [ax, roll - forced_roll];
+c = abs(jz) - max_jerk * ones(size(jz));%sumsqr(attitude_vector - desired_attitude_vector) - 0.0384;
+%ceq = attitude_vector - desired_attitude_vector;
+ceq = [];
 
 end
 

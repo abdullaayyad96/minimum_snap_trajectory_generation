@@ -12,6 +12,7 @@ for i = 1:N
             idx = idx+1;
         end
         vals(i) = poly_val(polys{idx},t,r);
+%         vals(i) = poly_val(polys{1}(:, idx),t,r);
     end
 end
 end

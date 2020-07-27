@@ -1,22 +1,24 @@
 function [total_cost, polys_x, polys_y, polys_z] = ComputeTrajectory(ts, waypts, n_order)
 
 %% conditions
-v0 = [0,0];
-a0 = [0,0];
-v1 = [0,0];
-a1 = [0,0];
+v0 = [0,0,0];
+a0 = [0,0,0];
+j0 = [0,0,0];
+v1 = [0,0,0];
+a1 = [0,0,0];
+j1 = [0,0,0];
 
 %% trajectory plan
 %independantly solve for x and y
-[polys_x, cost_x] = minimum_snap_single_axis_simple(waypts(1,:),ts,n_order,v0(1),a0(1),v1(1),a1(1));
-[polys_y, cost_y] = minimum_snap_single_axis_simple(waypts(2,:),ts,n_order,v0(2),a0(2),v1(2),a1(2));
-[polys_z, cost_z] = minimum_snap_single_axis_simple(waypts(3,:),ts,n_order,v0(2),a0(2),v1(2),a1(2));
+[polys_x, cost_x] = minimum_snap_single_axis_simple(waypts(1,:),ts,n_order,v0(1),a0(1),a0(1),v1(1),a1(1),j1(1));
+[polys_y, cost_y] = minimum_snap_single_axis_simple(waypts(2,:),ts,n_order,v0(2),a0(2),a0(2),v1(2),a1(2),j1(2));
+[polys_z, cost_z] = minimum_snap_single_axis_simple(waypts(3,:),ts,n_order,v0(3),a0(3),a0(3),v1(3),a1(3),j1(3));
 
 total_cost = cost_x^2 + cost_y^2 + cost_z^2;
 
 end
 
-function [polys, cost] = minimum_snap_single_axis_simple(waypts,ts,n_order,v0,a0,ve,ae)
+function [polys, cost] = minimum_snap_single_axis_simple(waypts,ts,n_order,v0,a0,j0,ve,ae,je)
 p0 = waypts(1);
 pe = waypts(end);
 
@@ -37,21 +39,23 @@ b_all = zeros(size(Q_all,1),1);
 %5-jerk continuity].
 %Additionally, 3 constraints on initial states and 3 on terminal states
 %acceleration
-Aeq = zeros(5*(n_poly-1)+6,n_coef(end));
-beq = zeros(5*(n_poly-1)+6,1);
+Aeq = zeros(5*(n_poly-1)+8,n_coef(end));
+beq = zeros(5*(n_poly-1)+8,1);
 
 % start/terminal position-velocity-acceleration constraints  (6 equations)
-Aeq(1:3,1:n_coef(1)) = [calc_tvec(ts(1),n_order(1),0);
+Aeq(1:4,1:n_coef(1)) = [calc_tvec(ts(1),n_order(1),0);
                      calc_tvec(ts(1),n_order(1),1);
-                     calc_tvec(ts(1),n_order(1),2)];
-Aeq(4:6,n_coef(end-1)+1:n_coef(end)) = ...
+                     calc_tvec(ts(1),n_order(1),2);
+                     calc_tvec(ts(1),n_order(1),3)];
+Aeq(5:8,n_coef(end-1)+1:n_coef(end)) = ...
                     [calc_tvec(ts(end),n_order(end),0);
                      calc_tvec(ts(end),n_order(end),1);
-                     calc_tvec(ts(end),n_order(end),2)];
-beq(1:6,1) = [p0,v0,a0,pe,ve,ae]';
+                     calc_tvec(ts(end),n_order(end),2);
+                     calc_tvec(ts(end),n_order(end),3)];
+beq(1:8,1) = [p0,v0,a0,j0,pe,ve,ae,je]';
 
 % position constraints on middle waypoints   (n_ploy-1 equations)
-neq = 6;
+neq = 8;
 for i=1:n_poly-1
     neq=neq+1;
     Aeq(neq,n_coef(i)+1:n_coef(i+1)) = calc_tvec(ts(i+1),n_order(i+1),0);
@@ -64,10 +68,12 @@ for i=1:n_poly-1
     tvec_v1 = calc_tvec(ts(i+1),n_order(i),1);
     tvec_a1 = calc_tvec(ts(i+1),n_order(i),2);    
     tvec_j1 = calc_tvec(ts(i+1),n_order(i),3);
+    tvec_s1 = calc_tvec(ts(i+1),n_order(i),4);
     tvec_p2 = calc_tvec(ts(i+1),n_order(i+1),0);
     tvec_v2 = calc_tvec(ts(i+1),n_order(i+1),1);
     tvec_a2 = calc_tvec(ts(i+1),n_order(i+1),2);    
     tvec_j2 = calc_tvec(ts(i+1),n_order(i+1),3);
+    tvec_s2 = calc_tvec(ts(i+1),n_order(i+1),4);
     neq=neq+1;
     if i<2
         start_index=1;
@@ -81,12 +87,14 @@ for i=1:n_poly-1
     Aeq(neq,start_index:n_coef(i+1))=[tvec_a1,-tvec_a2];
     neq=neq+1;
     Aeq(neq,start_index:n_coef(i+1))=[tvec_j1,-tvec_j2];
+%     neq=neq+1;
+%     Aeq(neq,start_index:n_coef(i+1))=[tvec_s1,-tvec_s2];
 end
 
 Aieq = [];
 bieq = [];
 
-options = optimoptions('quadprog','Display','final', 'ConstraintTolerance', 1e-12, 'MaxIterations', 1000, 'Algorithm', 'trust-region-reflective');
+options = optimoptions('quadprog','Display','final', 'ConstraintTolerance', 1e-12, 'MaxIterations', 1000, 'Algorithm', 'interior-point-convex');
 [p, cost] = quadprog(Q_all,b_all,Aieq,bieq,Aeq,beq, [], [], [], options);
 
 polys = {};
